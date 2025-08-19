@@ -3,18 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YouDrama 官网轮播</title>
+  <title>短剧App封面轮播</title>
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background-color: #111;
-      color: #fff;
     }
     .carousel {
       position: relative;
       width: 100%;
-      height: 60vh;
+      height: 100vh;
       overflow: hidden;
     }
     .carousel-track {
@@ -74,71 +73,9 @@
     }
     .arrow.left { left: 20px; }
     .arrow.right { right: 20px; }
-
-    /* Feature 模块 */
-    .features {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      padding: 20px 0;
-      flex-wrap: wrap;
-    }
-    .feature-btn {
-      background: rgba(255,255,255,0.1);
-      border: 1px solid #fff;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .feature-btn:hover, .feature-btn.active {
-      background: #fff;
-      color: #111;
-    }
-    .feature-content {
-      display: none;
-      padding: 20px;
-      text-align: center;
-    }
-    .feature-content.active {
-      display: block;
-    }
-    .videos {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-    .video-item {
-      width: 150px;
-      cursor: pointer;
-    }
-    .video-item img {
-      width: 100%;
-      border-radius: 5px;
-    }
-    .video-item span {
-      display: block;
-      margin-top: 5px;
-      font-size: 14px;
-    }
-    .feedback-form input, .feedback-form button {
-      padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      border: none;
-      font-size: 16px;
-    }
-    .feedback-form button {
-      background: #fff;
-      color: #111;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
-
-  <!-- 轮播 -->
   <div class="carousel">
     <div class="carousel-track">
       <div class="carousel-slide">
@@ -163,100 +100,41 @@
     </div>
   </div>
 
-  <!-- Feature 按钮 -->
-  <div class="features">
-    <div class="feature-btn active" data-target="free">免费短剧</div>
-    <div class="feature-btn" data-target="track">免费追剧</div>
-    <div class="feature-btn" data-target="speed">倍速播放</div>
-    <div class="feature-btn" data-target="selected">精选短剧</div>
-    <div class="feature-btn" data-target="drama">Drama</div>
-    <div class="feature-btn" data-target="downloaded">Downloaded</div>
-    <div class="feature-btn" data-target="feedback">Feedback</div>
-  </div>
-
-  <!-- Feature 内容 -->
-  <div class="feature-content active" id="free">
-    <div class="videos">
-      <div class="video-item"><img src="https://picsum.photos/id/1019/200/120"><span>短剧1</span></div>
-      <div class="video-item"><img src="https://picsum.photos/id/1020/200/120"><span>短剧2</span></div>
-    </div>
-  </div>
-
-  <div class="feature-content" id="track">
-    <div class="videos">
-      <div class="video-item"><img src="https://picsum.photos/id/1021/200/120"><span>追剧1</span></div>
-      <div class="video-item"><img src="https://picsum.photos/id/1022/200/120"><span>追剧2</span></div>
-    </div>
-  </div>
-
-  <div class="feature-content" id="speed">
-    <div>倍速播放功能说明，可选择 1.0x / 1.5x / 2.0x</div>
-  </div>
-
-  <div class="feature-content" id="selected">
-    <div class="videos">
-      <div class="video-item"><img src="https://picsum.photos/id/1023/200/120"><span>精选1</span></div>
-      <div class="video-item"><img src="https://picsum.photos/id/1024/200/120"><span>精选2</span></div>
-    </div>
-  </div>
-
-  <div class="feature-content" id="drama">
-    <div>Drama 内容模块示例</div>
-  </div>
-
-  <div class="feature-content" id="downloaded">
-    <div>Downloaded 内容模块示例</div>
-  </div>
-
-  <div class="feature-content" id="feedback">
-    <div class="feedback-form">
-      <div>反馈邮箱: <strong>support@youdrama.com</strong></div>
-      <input type="email" placeholder="请输入邮箱">
-      <input type="text" placeholder="请输入反馈">
-      <button>提交</button>
-    </div>
-  </div>
-
   <script>
-    // 轮播逻辑
     const track = document.querySelector('.carousel-track');
     const slides = Array.from(track.children);
     const nextButton = document.querySelector('.arrow.right');
     const prevButton = document.querySelector('.arrow.left');
     const indicators = document.querySelectorAll('.indicator');
+
     let currentIndex = 0;
     const updateCarousel = (index) => {
       track.style.transform = `translateX(-${index * 100}%)`;
       indicators.forEach((dot, i) => dot.classList.toggle('active', i === index));
     };
-    let interval = setInterval(nextSlide, 5000);
-    function nextSlide() {
+
+    nextButton.addEventListener('click', () => {
       currentIndex = (currentIndex + 1) % slides.length;
       updateCarousel(currentIndex);
-    }
-    function prevSlide() {
+    });
+
+    prevButton.addEventListener('click', () => {
       currentIndex = (currentIndex - 1 + slides.length) % slides.length;
       updateCarousel(currentIndex);
-    }
-    function resetInterval() {
-      clearInterval(interval);
-      interval = setInterval(nextSlide, 5000);
-    }
-    nextButton.addEventListener('click', () => { nextSlide(); resetInterval(); });
-    prevButton.addEventListener('click', () => { prevSlide(); resetInterval(); });
-    indicators.forEach((dot, i) => dot.addEventListener('click', () => { currentIndex = i; updateCarousel(currentIndex); resetInterval(); }));
+    });
 
-    // Feature 切换逻辑
-    const featureBtns = document.querySelectorAll('.feature-btn');
-    const featureContents = document.querySelectorAll('.feature-content');
-    featureBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const target = btn.getAttribute('data-target');
-        featureBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        featureContents.forEach(c => c.classList.toggle('active', c.id === target));
+    indicators.forEach((dot, i) => {
+      dot.addEventListener('click', () => {
+        currentIndex = i;
+        updateCarousel(currentIndex);
       });
     });
+
+    // 自动轮播
+    setInterval(() => {
+      currentIndex = (currentIndex + 1) % slides.length;
+      updateCarousel(currentIndex);
+    }, 5000);
   </script>
 </body>
 </html>
