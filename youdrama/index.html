@@ -1,140 +1,238 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>短剧App封面轮播</title>
+  <title>YouDrama - Short Drama App</title>
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #111;
+      background-color: #000;
+      color: #fff;
     }
-    .carousel {
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background: #111;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ff6600;
+    }
+    nav a {
+      margin-left: 20px;
+      text-decoration: none;
+      color: #fff;
+      font-size: 16px;
+    }
+    .btn {
+      background: #ff6600;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #e05500;
+    }
+    /* Hero with video background */
+    .hero {
       position: relative;
-      width: 100%;
       height: 100vh;
       overflow: hidden;
-    }
-    .carousel-track {
       display: flex;
-      transition: transform 0.5s ease-in-out;
-      height: 100%;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      text-align: center;
     }
-    .carousel-slide {
-      min-width: 100%;
-      height: 100%;
-      position: relative;
-    }
-    .carousel-slide img {
+    .bg-video {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
       object-fit: cover;
+      z-index: -1;
     }
-    .slide-title {
-      position: absolute;
-      bottom: 40px;
-      left: 20px;
-      color: #fff;
-      font-size: 28px;
-      font-weight: bold;
-      text-shadow: 0 3px 6px rgba(0,0,0,0.6);
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      padding: 20px;
     }
-    .indicators {
-      position: absolute;
-      bottom: 15px;
-      left: 50%;
-      transform: translateX(-50%);
+    .hero-content h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    .hero-content p {
+      font-size: 20px;
+      margin-bottom: 30px;
+    }
+    /* Features */
+    .features {
+      padding: 60px 20px;
+      text-align: center;
+      background: #111;
+    }
+    .features h2 {
+      margin-bottom: 40px;
+      color: #ff6600;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .feature {
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    /* Drama showcase carousel */
+    .dramas {
+      padding: 60px 20px;
+      text-align: center;
+      position: relative;
+    }
+    .dramas h2 {
+      margin-bottom: 30px;
+      color: #ff6600;
+    }
+    .carousel {
       display: flex;
-      gap: 8px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 20px;
+      padding: 20px;
     }
-    .indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.5);
-      cursor: pointer;
-      transition: background 0.3s;
+    .carousel::-webkit-scrollbar {
+      display: none;
     }
-    .indicator.active {
-      background: #fff;
+    .drama {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      width: 200px;
     }
-    .arrow {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 40px;
-      color: #fff;
-      background: rgba(0,0,0,0.3);
-      padding: 10px;
-      border-radius: 50%;
-      cursor: pointer;
-      user-select: none;
+    .drama img {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 10px;
     }
-    .arrow.left { left: 20px; }
-    .arrow.right { right: 20px; }
+    .drama p {
+      font-size: 14px;
+      color: #ddd;
+    }
+    /* Feedback */
+    .feedback {
+      background: #111;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .feedback h2 {
+      margin-bottom: 30px;
+      color: #ff6600;
+    }
+    .feedback p {
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+    /* Download */
+    .download {
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .download h2 {
+      margin-bottom: 20px;
+      color: #ff6600;
+    }
+    .download a {
+      display: inline-block;
+      margin: 10px;
+    }
+    /* Footer */
+    footer {
+      background: #000;
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: #888;
+    }
   </style>
 </head>
 <body>
-  <div class="carousel">
-    <div class="carousel-track">
-      <div class="carousel-slide">
-        <img src="https://picsum.photos/id/1015/1080/1920" alt="剧1">
-        <div class="slide-title">甜宠恋爱剧《初恋心动》</div>
-      </div>
-      <div class="carousel-slide">
-        <img src="https://picsum.photos/id/1016/1080/1920" alt="剧2">
-        <div class="slide-title">霸总虐恋《深情不负》</div>
-      </div>
-      <div class="carousel-slide">
-        <img src="https://picsum.photos/id/1018/1080/1920" alt="剧3">
-        <div class="slide-title">古装甜剧《缘来是你》</div>
-      </div>
+  <header>
+    <div class="logo">YouDrama</div>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#dramas">Dramas</a>
+      <a href="#feedback">Feedback</a>
+      <a href="#download">Download</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section with background video -->
+  <section class="hero">
+    <video autoplay muted loop playsinline class="bg-video">
+      <source src="yourdrama.mp4" type="video/mp4">
+    </video>
+    <div class="hero-content">
+      <h1>Watch Short Dramas Anytime, Anywhere.</h1>
+      <p>Addictive bite-sized dramas tailored for your daily entertainment.</p>
+      <a href="https://play.google.com/store/apps/details?id=you.drama.shorts" class="btn">Google Play</a>
+      <a href="#" class="btn" style="background:#555;">App Store (Coming Soon)</a>
     </div>
-    <div class="arrow left">&#10094;</div>
-    <div class="arrow right">&#10095;</div>
-    <div class="indicators">
-      <div class="indicator active"></div>
-      <div class="indicator"></div>
-      <div class="indicator"></div>
+  </section>
+
+  <section id="features" class="features">
+    <h2>Features</h2>
+    <div class="features-grid">
+      <div class="feature">🎬 Endless Short Dramas – Fresh stories updated daily.</div>
+      <div class="feature">⚡ Binge-Worthy Episodes – Each episode under 5 minutes.</div>
+      <div class="feature">❤️ Personalized For You – Smart recommendations based on your taste.</div>
+      <div class="feature">🌍 Watch Anywhere – Stream anytime, on any device.</div>
     </div>
-  </div>
+  </section>
 
-  <script>
-    const track = document.querySelector('.carousel-track');
-    const slides = Array.from(track.children);
-    const nextButton = document.querySelector('.arrow.right');
-    const prevButton = document.querySelector('.arrow.left');
-    const indicators = document.querySelectorAll('.indicator');
+  <!-- Drama carousel -->
+  <section id="dramas" class="dramas">
+    <h2>Popular Dramas</h2>
+    <div class="carousel">
+      <div class="drama"><img src="https://via.placeholder.com/200x300?text=Drama+1" alt="Drama 1"><p>Love Beyond Time</p></div>
+      <div class="drama"><img src="https://via.placeholder.com/200x300?text=Drama+2" alt="Drama 2"><p>Deadly Secret</p></div>
+      <div class="drama"><img src="https://via.placeholder.com/200x300?text=Drama+3" alt="Drama 3"><p>The Last Promise</p></div>
+      <div class="drama"><img src="https://via.placeholder.com/200x300?text=Drama+4" alt="Drama 4"><p>Unexpected Love</p></div>
+      <div class="drama"><img src="https://via.placeholder.com/200x300?text=Drama+5" alt="Drama 5"><p>Hidden Truths</p></div>
+      <div class="drama"><img src="https://via.placeholder.com/200x300?text=Drama+6" alt="Drama 6"><p>City Lights</p></div>
+    </div>
+  </section>
 
-    let currentIndex = 0;
-    const updateCarousel = (index) => {
-      track.style.transform = `translateX(-${index * 100}%)`;
-      indicators.forEach((dot, i) => dot.classList.toggle('active', i === index));
-    };
+  <section id="feedback" class="feedback">
+    <h2>User Feedback</h2>
+    <p>⭐⭐⭐⭐⭐ “Best short drama app ever! Episodes are so addictive.”</p>
+    <p>⭐⭐⭐⭐⭐ “Perfect for watching during my commute.”</p>
+    <p>⭐⭐⭐⭐⭐ “High-quality dramas, way better than expected.”</p>
+  </section>
 
-    nextButton.addEventListener('click', () => {
-      currentIndex = (currentIndex + 1) % slides.length;
-      updateCarousel(currentIndex);
-    });
+  <section id="download" class="download">
+    <h2>Download YouDrama Now</h2>
+    <a href="https://play.google.com/store/apps/details?id=you.drama.shorts" class="btn">Google Play</a>
+    <a href="#" class="btn" style="background:#555;">App Store (Coming Soon)</a>
+  </section>
 
-    prevButton.addEventListener('click', () => {
-      currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-      updateCarousel(currentIndex);
-    });
-
-    indicators.forEach((dot, i) => {
-      dot.addEventListener('click', () => {
-        currentIndex = i;
-        updateCarousel(currentIndex);
-      });
-    });
-
-    // 自动轮播
-    setInterval(() => {
-      currentIndex = (currentIndex + 1) % slides.length;
-      updateCarousel(currentIndex);
-    }, 5000);
-  </script>
+  <footer>
+    <p>© 2025 YouDrama. All rights reserved. | Privacy Policy | Terms of Service</p>
+  </footer>
 </body>
 </html>
