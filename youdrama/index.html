@@ -78,6 +78,15 @@
       font-size: 20px;
       margin-bottom: 30px;
     }
+    /* Rotating banner texts */
+    .banner-texts {
+      font-size: 22px;
+      font-weight: bold;
+      color: #ff6600;
+      margin-top: 15px;
+      height: 30px;
+    }
+
     /* Features */
     .features {
       padding: 60px 20px;
@@ -100,6 +109,7 @@
       padding: 20px;
       border-radius: 10px;
     }
+
     /* Drama showcase carousel */
     .dramas {
       padding: 60px 20px;
@@ -134,6 +144,7 @@
       font-size: 14px;
       color: #ddd;
     }
+
     /* Feedback */
     .feedback {
       background: #111;
@@ -148,6 +159,7 @@
       font-style: italic;
       margin-bottom: 20px;
     }
+
     /* Download */
     .download {
       padding: 60px 20px;
@@ -161,6 +173,7 @@
       display: inline-block;
       margin: 10px;
     }
+
     /* Footer */
     footer {
       background: #000;
@@ -168,6 +181,16 @@
       padding: 20px;
       font-size: 14px;
       color: #888;
+    }
+    .language-select {
+      margin-top: 10px;
+    }
+    .language-select select {
+      padding: 6px;
+      border-radius: 6px;
+      background: #111;
+      color: #fff;
+      border: 1px solid #444;
     }
   </style>
 </head>
@@ -190,6 +213,7 @@
     <div class="hero-content">
       <h1>Watch Short Dramas Anytime, Anywhere.</h1>
       <p>Addictive bite-sized dramas tailored for your daily entertainment.</p>
+      <div class="banner-texts" id="banner-texts">✨ Free Short Dramas</div>
       <a href="https://play.google.com/store/apps/details?id=you.drama.shorts" class="btn">Google Play</a>
       <a href="#" class="btn" style="background:#555;">App Store (Coming Soon)</a>
     </div>
@@ -233,6 +257,39 @@
 
   <footer>
     <p>© 2025 YouDrama. All rights reserved. | Privacy Policy | Terms of Service</p>
+    <div class="language-select">
+      <label for="language">🌐 Language:</label>
+      <select id="language" onchange="changeLanguage(this.value)">
+        <option value="en">English</option>
+        <option value="zh">中文</option>
+        <option value="ja">日本語</option>
+        <option value="es">Español</option>
+      </select>
+    </div>
   </footer>
+
+  <script>
+    // 自动轮播文字
+    const texts = [
+      "✨ Free Short Dramas",
+      "🔥 Tons of Selected Dramas",
+      "💖 Sweet Romance",
+      "🌆 Urban Love Stories",
+      "🏞 Adventure Series",
+      "📈 Super High Popularity"
+    ];
+    let idx = 0;
+    setInterval(() => {
+      idx = (idx + 1) % texts.length;
+      document.getElementById("banner-texts").innerText = texts[idx];
+    }, 2500);
+
+    // 简单语言切换模拟
+    function changeLanguage(lang) {
+      alert("Language switched to: " + lang);
+      // 这里可以做真正的多语言切换逻辑（如加载翻译 JSON）
+    }
+  </script>
 </body>
 </html>
+
