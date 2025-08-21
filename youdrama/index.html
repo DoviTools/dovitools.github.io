@@ -1,549 +1,1227 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YouDrama - Short Drama App</title>
-  <style>
-    :root{
-      --brand:#ff6600;
-      --bg:#000;
-      --bg-2:#111;
-      --fg:#fff;
-      --muted:#bbb;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--fg)}
-
-    /* Header */
-    header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:rgba(17,17,17,.85);backdrop-filter:saturate(180%) blur(8px);}
-    .logo{font-size:22px;font-weight:800;color:var(--brand);letter-spacing:.3px}
-    nav a{color:#fff;text-decoration:none;margin-left:18px;font-size:15px;opacity:.9}
-    nav a:hover{opacity:1}
-    .btn{display:inline-block;background:var(--brand);color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:700;transition:.25s transform, .25s opacity}
-    .btn:hover{transform:translateY(-1px);opacity:.95}
-    .btn.secondary{background:#555}
-
-    /* HERO SLIDER (full-bleed) */
-    .hero{position:relative;min-height:72vh;max-height:92vh;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
-    .slides{position:absolute;inset:0}
-    .slide{position:absolute;inset:0;opacity:0;transition:opacity .6s ease}
-    .slide.active{opacity:1}
-    .slide-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-    .slide::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.85) 100%)}
-    .hero-inner{position:relative;z-index:2;max-width:960px;text-align:center;padding:48px 20px 72px}
-    .hero h1{font-size:clamp(32px,6vw,60px);line-height:1.1;margin:0 0 14px;font-weight:900}
-    .hero p{font-size:clamp(16px,2.4vw,20px);color:#ddd;margin:0 0 14px}
-    .badge-rotator{display:inline-flex;align-items:center;gap:8px;margin:12px 0 22px}
-    .badge{display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(0,0,0,.35);font-weight:700}
-    .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--brand);display:inline-block;margin-right:8px}
-    .hero-ctas{display:flex;gap:12px;align-items:center;justify-content:center;margin-top:6px;flex-wrap:wrap}
-
-    /* Slider controls */
-    .ctrl{position:absolute;top:50%;transform:translateY(-50%);z-index:3;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.25);width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;user-select:none}
-    .ctrl:hover{background:rgba(0,0,0,.6)}
-    .ctrl.prev{left:14px}
-    .ctrl.next{right:14px}
-    .ctrl svg{width:22px;height:22px;fill:#fff}
-    .dots{position:absolute;bottom:18px;left:0;right:0;display:flex;justify-content:center;gap:8px;z-index:3}
-    .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.35);cursor:pointer}
-    .dot.active{background:#fff}
-
-    /* Sections */
-    section{scroll-margin-top:82px}
-    .features{padding:60px 20px;background:var(--bg-2);text-align:center}
-    .features h2{color:var(--brand);margin:0 0 32px}
-    .features-grid{max-width:1100px;margin:0 auto;display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-    .feature{background:#1c1c1c;border:1px solid #282828;padding:20px;border-radius:14px;text-align:left}
-
-    /* DRAMA STRIP (large cards) */
-    .dramas{padding:60px 16px;text-align:center}
-    .dramas h2{color:var(--brand);margin:0 0 18px}
-    .genres{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px}
-    .genres .chip{padding:8px 12px;border-radius:999px;border:1px solid #333;background:#141414;font-size:14px}
-    .strip{position:relative;display:flex;gap:18px;overflow-x:auto;padding:20px 6px 6px;scroll-snap-type:x mandatory}
-    .strip::-webkit-scrollbar{display:none}
-    .card{flex:0 0 320px;scroll-snap-align:start;border-radius:16px;overflow:hidden;position:relative;background:#111;border:1px solid #222}
-    .card img,.card video{width:100%;height:360px;object-fit:cover;object-position: center center;display:block}
-    .card .meta{padding:12px;text-align:left}
-    .card .title{font-weight:800;margin:0 0 6px}
-    .card .sub{color:#aaa;font-size:14px;margin:0}
-
-    /* Feedback & download */
-    .feedback{padding:60px 20px;background:var(--bg-2);text-align:center}
-    .feedback h2{color:var(--brand)}
-    .feedback p{font-style:italic;max-width:800px;margin:12px auto;color:#ddd}
-    .download{padding:60px 20px;text-align:center}
-    .download h2{color:var(--brand)}
-
-    footer{background:#000;text-align:center;padding:20px;color:#888}
-    .language-select{margin-top:10px}
-    .language-select select{padding:8px 10px;border-radius:8px;background:#111;color:#fff;border:1px solid #444}
-
-    /* RTL support */
-    [dir="rtl"] .hero-ctas{flex-direction:row-reverse}
-    [dir="rtl"] nav a{margin-right:18px;margin-left:0}
-
-    @media (max-width:640px){
-      .card{flex-basis:76vw}
-      .card img,.card video{height:46vw}
-    }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="logo">YouDrama</div>
-    <nav>
-      <a href="#features" data-i18n="nav.features">Features</a>
-      <a href="#dramas" data-i18n="nav.dramas">Dramas</a>
-      <a href="#feedback" data-i18n="nav.feedback">Feedback</a>
-      <a href="#download" data-i18n="nav.download">Download</a>
-    </nav>
-  </header>
-
-  <!-- HERO: full-bleed slider with video/image -->
-  <section class="hero" aria-label="Hero Slider">
-    <div class="slides" id="slides">
-      <!-- Slide 1: video (replace src with your trailer) -->
-      <div class="slide active" data-index="0">
-        <video class="slide-media" src="yourdrama.mp4" muted playsinline autoplay loop preload="metadata" onerror="this.style.display='none'"></video>
-        <img class="slide-media" src="https://dvfilepub.s3.amazonaws.com/youdrama/web/slide_2.png"  />
-      </div>
-      <!-- Slide 2: image -->
-      <div class="slide" data-index="1">
-        <img class="slide-media" src="https://dvfilepub.s3.amazonaws.com/youdrama/web/slide_1.png" />
-      </div>
-      <!-- Slide 3: image -->
-      <div class="slide" data-index="2">
-        <img class="slide-media" src="https://dvfilepub.s3.amazonaws.com/youdrama/web/slide_3.png"  />
-      </div>
-    </div>
-
-    <button class="ctrl prev" aria-label="Previous" id="prev">
-      <svg viewBox="0 0 24 24"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-    </button>
-    <button class="ctrl next" aria-label="Next" id="next">
-      <svg viewBox="0 0 24 24"><path d="M8.59 16.59 10 18l6-6-6-6-1.41 1.41L12.17 12z"/></svg>
-    </button>
-    <div class="dots" id="dots" role="tablist" aria-label="Slide indicators"></div>
-
-    <div class="hero-inner">
-      <h1 data-i18n="hero.title">Watch Short Dramas Anytime, Anywhere.</h1>
-      <p data-i18n="hero.subtitle">Addictive bite-sized dramas tailored for your daily entertainment.</p>
-      <div class="badge-rotator" aria-live="polite">
-        <span class="badge" id="rotating-badge"><span class="dot"></span><span id="badge-text">Free Short Dramas</span></span>
-      </div>
-      <div class="hero-ctas">
-        <a href="https://play.google.com/store/apps/details?id=you.drama.shorts" class="btn" data-i18n="cta.play"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="30 336.7 120.9 129.2" width="20" height="20" style="vertical-align:middle;margin-right:6px;">
-      <path fill="#fff" d="M152.5 402.9c0 9.1-7.4 16.5-16.5 16.5H69.3c-9.1 0-16.5-7.4-16.5-16.5v-66.6c0-9.1 7.4-16.5 16.5-16.5h66.7c9.1 0 16.5 7.4 16.5 16.5v66.6z"/>
-    </svg>Google Play</a>
-        <a href="https://apps.apple.com/us/app/ora-drama-short-dramas-tv/id6744021081" class="btn secondary" data-i18n="cta.appstore"><img src="https://upload.wikimedia.org/wikipedia/commons/6/67/App_Store_%28iOS%29.svg" alt="App Store" style="height:20px;margin-right:8px;vertical-align:middle;">App Store</a>
-      </div>
-    </div>
-  </section>
-
-  <section id="features" class="features">
-    <h2 data-i18n="features.title">Features</h2>
-    <div class="features-grid">
-      <div class="feature" data-i18n="features.f1">🎬 Endless Short Dramas — Fresh stories updated daily.</div>
-      <div class="feature" data-i18n="features.f2">⚡ Binge‑Worthy Episodes — Each episode under 5 minutes.</div>
-      <div class="feature" data-i18n="features.f3">❤️ Personalized For You — Smart recommendations based on your taste.</div>
-      <div class="feature" data-i18n="features.f4">🌍 Watch Anywhere — Stream anytime, on any device.</div>
-    </div>
-  </section>
-
-  <!-- LARGE CARDS STRIP -->
-  <section id="dramas" class="dramas">
-    <h2 data-i18n="dramas.title">Popular Dramas</h2>
-    <div class="genres" id="genreChips">
-      <span class="chip" data-i18n="genres.free">Free</span>
-      <span class="chip" data-i18n="genres.sweet">Sweet Romance</span>
-      <span class="chip" data-i18n="genres.love">Love</span>
-      <span class="chip" data-i18n="genres.urban">Urban</span>
-      <span class="chip" data-i18n="genres.adventure">Adventure</span>
-    </div>
-    <div class="strip">
-      <article class="card">
-        <video src="your-teaser-1.mp4" muted playsinline loop preload="metadata" poster="https://youdrama-vod.jowo.tv/1444527cvodsgp1500039468/444535515145403691905279868/cover.webp?t=68a83bed&us=cfb5bcbc8a9394c68ac886c16587d543&sign=9cad55f6f8b1283364289737e0702dea92dcd283"></video>
-      </article>
-      <article class="card">
-        <img src="https://youdrama-vod.jowo.tv/1444527cvodsgp1500039468/9e367c8c3560136624810598569/wNmC3h.jpeg?t=68a83bed&us=03a631f5b07eebdabffb72acf7ed2406&sign=8d672a659e6eb9d26dbf4b2dda394325956fc2cb" alt="Drama" />
-      </article>
-      <article class="card">
-        <img src="https://youdrama-vod.jowo.tv/1444527cvodsgp1500039468/8d724f295145403692662271687/cover.webp?t=68a83bed&us=5c59a1c85496eae8a8aabd6714d9c372&sign=eff9d21c290802ff6d602167b8f7986b696b4ce1" alt="Drama" />
-      </article>
-      <article class="card">
-        <img src="https://youdrama-vod.jowo.tv/1444527cvodsgp1500039468/7cd8c24c5145403692658845660/cover.webp?t=68a83bed&us=88f33f67e331ba7c43eb5e748699d29f&sign=a50601cd6329f14983032aae53d4db74f8c87572" alt="Drama" />
-      </article>
-    </div>
-  </section>
-
-  <section id="feedback" class="feedback">
-    <h2 data-i18n="feedback.title">User Feedback</h2>
-    <p data-i18n="feedback.q1">⭐⭐⭐⭐⭐ “Best short drama app ever! Episodes are so addictive.”</p>
-    <p data-i18n="feedback.q2">⭐⭐⭐⭐⭐ “Perfect for watching during my commute.”</p>
-    <p data-i18n="feedback.q3">⭐⭐⭐⭐⭐ “High-quality dramas, way better than expected.”</p>
-  </section>
-
-  <section id="download" class="download">
-    <h2 data-i18n="download.title">Download YouDrama Now</h2>
-    <a href="https://play.google.com/store/apps/details?id=you.drama.shorts" class="btn" data-i18n="cta.play">Google Play</a>
-    <a href="https://apps.apple.com/us/app/ora-drama-short-dramas-tv/id6744021081" class="btn secondary" data-i18n="cta.appstore">App Store</a>
-  </section>
-
-  <footer>
-    <p data-i18n="footer.copyright">© 2025 YouDrama. All rights reserved. | Privacy Policy | Terms of Service</p>
-    <div class="language-select">
-      <label for="language" data-i18n="lang.label">🌐 Language:</label>
-      <select id="language">
-        <option value="en">English</option>
-        <option value="zh">中文</option>
-        <option value="ja">日本語</option>
-        <option value="es">Español</option>
-        <option value="pt">Português</option>
-        <option value="id">Bahasa Indonesia</option>
-        <option value="hi">हिन्दी</option>
-        <option value="th">ไทย</option>
-        <option value="vi">Tiếng Việt</option>
-        <option value="ko">한국어</option>
-        <option value="ru">Русский</option>
-        <option value="ar">العربية</option>
-      </select>
-    </div>
-  </footer>
-
-  <script>
-    // --- i18n dictionary ---
-    const i18n = {
-      en:{
-        title:"YouDrama - Short Drama App",
-        "nav.features":"Features","nav.dramas":"Dramas","nav.feedback":"Feedback","nav.download":"Download",
-        "hero.title":"Watch Short Dramas Anytime, Anywhere.",
-        "hero.subtitle":"Addictive bite-sized dramas tailored for your daily entertainment.",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"Features",
-        "features.f1":"🎬 Endless Short Dramas — Fresh stories updated daily.",
-        "features.f2":"⚡ Binge‑Worthy Episodes — Each episode under 5 minutes.",
-        "features.f3":"❤️ Personalized For You — Smart recommendations based on your taste.",
-        "features.f4":"🌍 Watch Anywhere — Stream anytime, on any device.",
-        "dramas.title":"Popular Dramas",
-        "genres.free":"Free","genres.sweet":"Sweet Romance","genres.love":"Love","genres.urban":"Urban","genres.adventure":"Adventure",
-        "card.minutes":"Episodes · under 5 minutes",
-        "feedback.title":"User Feedback","feedback.q1":"⭐⭐⭐⭐⭐ “Best short drama app ever! Episodes are so addictive.”","feedback.q2":"⭐⭐⭐⭐⭐ “Perfect for watching during my commute.”","feedback.q3":"⭐⭐⭐⭐⭐ “High-quality dramas, way better than expected.”",
-        "download.title":"Download YouDrama Now",
-        "footer.copyright":"© 2025 YouDrama. All rights reserved. | Privacy Policy | Terms of Service",
-        "lang.label":"🌐 Language:"
-      },
-      zh:{
-        title:"YouDrama - 短剧应用",
-        "nav.features":"功能","nav.dramas":"短剧","nav.feedback":"评价","nav.download":"下载",
-        "hero.title":"随时随地看短剧。",
-        "hero.subtitle":"上头又过瘾的碎片化短剧，量身定制你的每日娱乐。",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"功能亮点",
-        "features.f1":"🎬 海量短剧——每日更新新故事。",
-        "features.f2":"⚡ 刷到停不下——每集小于 5 分钟。",
-        "features.f3":"❤️ 个性化推荐——更懂你的口味。",
-        "features.f4":"🌍 随处可看——多设备流畅观看。",
-        "dramas.title":"热门短剧",
-        "genres.free":"免费","genres.sweet":"甜宠","genres.love":"爱情","genres.urban":"都市","genres.adventure":"探险",
-        "card.minutes":"单集 · 不超过 5 分钟",
-        "feedback.title":"用户口碑","feedback.q1":"⭐⭐⭐⭐⭐ “最好用的短剧 App！一集接一集停不下来。”","feedback.q2":"⭐⭐⭐⭐⭐ “通勤刚刚好，碎片时间也能追。”","feedback.q3":"⭐⭐⭐⭐⭐ “质量超出预期，故事很上头。”",
-        "download.title":"立即下载 YouDrama",
-        "footer.copyright":"© 2025 YouDrama. 保留所有权利 | 隐私政策 | 服务条款",
-        "lang.label":"🌐 语言："
-      },
-      ja:{
-        title:"YouDrama - ショートドラマ",
-        "nav.features":"特徴","nav.dramas":"ドラマ","nav.feedback":"レビュー","nav.download":"ダウンロード",
-        "hero.title":"いつでもどこでもショートドラマ。",
-        "hero.subtitle":"毎日のエンタメに最適、サクッと見られるドラマ。",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"主な機能",
-        "features.f1":"🎬 無料のショートドラマが毎日更新。",
-        "features.f2":"⚡ 1話5分以内で一気見。",
-        "features.f3":"❤️ 好みに合わせたレコメンド。",
-        "features.f4":"🌍 どのデバイスでも視聴可能。",
-        "dramas.title":"人気ドラマ",
-        "genres.free":"無料","genres.sweet":"胸キュン","genres.love":"恋愛","genres.urban":"都会","genres.adventure":"アドベンチャー",
-        "card.minutes":"各話・5分以内",
-        "feedback.title":"ユーザーレビュー","feedback.q1":"⭐⭐⭐⭐⭐ “中毒性がある！通勤にも最適。”","feedback.q2":"⭐⭐⭐⭐⭐ “スキマ時間にちょうどいい。”","feedback.q3":"⭐⭐⭐⭐⭐ “想像以上のクオリティ。”",
-        "download.title":"今すぐ YouDrama を入手",
-        "footer.copyright":"© 2025 YouDrama. 無断転載禁止 | プライバシー | 利用規約",
-        "lang.label":"🌐 言語:"
-      },
-      es:{
-        title:"YouDrama - Mini dramas",
-        "nav.features":"Funciones","nav.dramas":"Dramas","nav.feedback":"Opiniones","nav.download":"Descargar",
-        "hero.title":"Mira mini‑dramas cuando y donde quieras.",
-        "hero.subtitle":"Historias cortas y adictivas para tu día a día.",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"Funciones",
-        "features.f1":"🎬 Muchísimos mini‑dramas — Nuevas historias cada día.",
-        "features.f2":"⚡ Episodios para maratonear — Menos de 5 minutos.",
-        "features.f3":"❤️ Recomendaciones según tus gustos.",
-        "features.f4":"🌍 Disfruta en cualquier dispositivo.",
-        "dramas.title":"Dramas populares",
-        "genres.free":"Gratis","genres.sweet":"Dulce romance","genres.love":"Amor","genres.urban":"Urbano","genres.adventure":"Aventura",
-        "card.minutes":"Episodios · menos de 5 minutos",
-        "feedback.title":"Opiniones","feedback.q1":"⭐⭐⭐⭐⭐ “La mejor app de mini‑dramas. ¡Engancha!”","feedback.q2":"⭐⭐⭐⭐⭐ “Perfecta para el transporte.”","feedback.q3":"⭐⭐⭐⭐⭐ “Calidad sorprendente.”",
-        "download.title":"Descarga YouDrama ahora",
-        "footer.copyright":"© 2025 YouDrama. Todos los derechos reservados | Privacidad | Términos",
-        "lang.label":"🌐 Idioma:"
-      },
-      pt:{
-        title:"YouDrama - Minisséries",
-        "nav.features":"Recursos","nav.dramas":"Dramas","nav.feedback":"Avaliações","nav.download":"Baixar",
-        "hero.title":"Assista minidramas em qualquer hora e lugar.",
-        "hero.subtitle":"Histórias curtas e viciantes para o seu dia a dia.",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"Recursos",
-        "features.f1":"🎬 Muitas minisséries — Novas histórias diariamente.",
-        "features.f2":"⚡ Episódios para maratonar — Menos de 5 minutos.",
-        "features.f3":"❤️ Recomendações personalizadas.",
-        "features.f4":"🌍 Assista em qualquer dispositivo.",
-        "dramas.title":"Dramas populares",
-        "genres.free":"Grátis","genres.sweet":"Romance fofo","genres.love":"Amor","genres.urban":"Urbano","genres.adventure":"Aventura",
-        "card.minutes":"Episódios · menos de 5 minutos",
-        "feedback.title":"Depoimentos","feedback.q1":"⭐⭐⭐⭐⭐ “O melhor app de minidramas!”","feedback.q2":"⭐⭐⭐⭐⭐ “Perfeito para o trajeto.”","feedback.q3":"⭐⭐⭐⭐⭐ “Qualidade surpreendente.”",
-        "download.title":"Baixe o YouDrama agora",
-        "footer.copyright":"© 2025 YouDrama. Todos os direitos reservados | Privacidade | Termos",
-        "lang.label":"🌐 Idioma:"
-      },
-      id:{
-        title:"YouDrama - Drama Pendek",
-        "nav.features":"Fitur","nav.dramas":"Drama","nav.feedback":"Ulasan","nav.download":"Unduh",
-        "hero.title":"Tonton drama pendek kapan saja, di mana saja.",
-        "hero.subtitle":"Drama singkat yang bikin ketagihan untuk harianmu.",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"Fitur",
-        "features.f1":"🎬 Banyak drama pendek — Update setiap hari.",
-        "features.f2":"⚡ Tiap episode < 5 menit.",
-        "features.f3":"❤️ Rekomendasi sesuai selera.",
-        "features.f4":"🌍 Tonton di perangkat apa pun.",
-        "dramas.title":"Drama Populer",
-        "genres.free":"Gratis","genres.sweet":"Romantis manis","genres.love":"Cinta","genres.urban":"Perkotaan","genres.adventure":"Petualangan",
-        "card.minutes":"Episode · kurang dari 5 menit",
-        "feedback.title":"Ulasan", "feedback.q1":"⭐⭐⭐⭐⭐ “Aplikasinya bikin nagih!”","feedback.q2":"⭐⭐⭐⭐⭐ “Pas untuk waktu senggang.”","feedback.q3":"⭐⭐⭐⭐⭐ “Kualitasnya mantap.”",
-        "download.title":"Unduh YouDrama sekarang",
-        "footer.copyright":"© 2025 YouDrama. Semua hak dilindungi | Privasi | Ketentuan",
-        "lang.label":"🌐 Bahasa:"
-      },
-      hi:{
-        title:"YouDrama - शॉर्ट ड्रामा ऐप",
-        "nav.features":"फ़ीचर्स","nav.dramas":"ड्रामा","nav.feedback":"समीक्षाएँ","nav.download":"डाउनलोड",
-        "hero.title":"कभी भी, कहीं भी शॉर्ट ड्रामा देखें।",
-        "hero.subtitle":"आपके रोज़मर्रा के मनोरंजन के लिए छोटे और रोमांचक एपिसोड।",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"मुख्य फ़ीचर्स",
-        "features.f1":"🎬 ढेरों शॉर्ट ड्रामा — रोज़ नए एपिसोड।",
-        "features.f2":"⚡ हर एपिसोड 5 मिनट से कम।",
-        "features.f3":"❤️ आपकी पसंद पर आधारित सुझाव।",
-        "features.f4":"🌍 किसी भी डिवाइस पर देखें।",
-        "dramas.title":"लोकप्रिय ड्रामा",
-        "genres.free":"फ्री","genres.sweet":"स्वीट रोमांस","genres.love":"प्यार","genres.urban":"अर्बन","genres.adventure":"एडवेंचर",
-        "card.minutes":"एपिसोड · 5 मिनट से कम",
-        "feedback.title":"उपयोगकर्ता समीक्षाएँ","feedback.q1":"⭐⭐⭐⭐⭐ “बेहतरीन ऐप!”","feedback.q2":"⭐⭐⭐⭐⭐ “कम्यूट के लिए परफेक्ट।”","feedback.q3":"⭐⭐⭐⭐⭐ “क्वालिटी शानदार।”",
-        "download.title":"अभी डाउनलोड करें YouDrama",
-        "footer.copyright":"© 2025 YouDrama. सर्वाधिकार सुरक्षित | गोपनीयता | शर्तें",
-        "lang.label":"🌐 भाषा:"
-      },
-      th:{
-        title:"YouDrama - ซีรีส์สั้น",
-        "nav.features":"ฟีเจอร์","nav.dramas":"ซีรีส์","nav.feedback":"รีวิว","nav.download":"ดาวน์โหลด",
-        "hero.title":"รับชมซีรีส์สั้นได้ทุกที่ ทุกเวลา",
-        "hero.subtitle":"ตอนสั้นๆ ดูเพลิน เหมาะกับทุกวันของคุณ",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"ฟีเจอร์",
-        "features.f1":"🎬 ซีรีส์สั้นจำนวนมาก อัปเดตทุกวัน",
-        "features.f2":"⚡ ตอนละไม่ถึง 5 นาที",
-        "features.f3":"❤️ แนะนำตามรสนิยมของคุณ",
-        "features.f4":"🌍 ดูได้ทุกอุปกรณ์",
-        "dramas.title":"ซีรีส์ยอดนิยม",
-        "genres.free":"ฟรี","genres.sweet":"หวานละมุน","genres.love":"ความรัก","genres.urban":"เมือง","genres.adventure":"ผจญภัย",
-        "card.minutes":"ตอน · ไม่เกิน 5 นาที",
-        "feedback.title":"รีวิวผู้ใช้","feedback.q1":"⭐⭐⭐⭐⭐ “ติดมาก!”","feedback.q2":"⭐⭐⭐⭐⭐ “ดูระหว่างเดินทางกำลังดี”","feedback.q3":"⭐⭐⭐⭐⭐ “คุณภาพดีเกินคาด”",
-        "download.title":"ดาวน์โหลด YouDrama เลย",
-        "footer.copyright":"© 2025 YouDrama. สงวนลิขสิทธิ์ | ความเป็นส่วนตัว | ข้อกำหนด",
-        "lang.label":"🌐 ภาษา:"
-      },
-      vi:{
-        title:"YouDrama - Phim ngắn",
-        "nav.features":"Tính năng","nav.dramas":"Phim","nav.feedback":"Đánh giá","nav.download":"Tải xuống",
-        "hero.title":"Xem phim ngắn mọi lúc, mọi nơi.",
-        "hero.subtitle":"Những tập phim ngắn gây nghiện cho ngày của bạn.",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"Tính năng",
-        "features.f1":"🎬 Nhiều phim ngắn — Cập nhật hằng ngày.",
-        "features.f2":"⚡ Mỗi tập dưới 5 phút.",
-        "features.f3":"❤️ Gợi ý theo sở thích.",
-        "features.f4":"🌍 Xem trên mọi thiết bị.",
-        "dramas.title":"Phim phổ biến",
-        "genres.free":"Miễn phí","genres.sweet":"Ngọt ngào","genres.love":"Tình yêu","genres.urban":"Đô thị","genres.adventure":"Phiêu lưu",
-        "card.minutes":"Tập · dưới 5 phút",
-        "feedback.title":"Phản hồi","feedback.q1":"⭐⭐⭐⭐⭐ “Ứng dụng tuyệt vời!”","feedback.q2":"⭐⭐⭐⭐⭐ “Rất hợp khi di chuyển.”","feedback.q3":"⭐⭐⭐⭐⭐ “Chất lượng vượt mong đợi.”",
-        "download.title":"Tải YouDrama ngay",
-        "footer.copyright":"© 2025 YouDrama. Bảo lưu mọi quyền | Quyền riêng tư | Điều khoản",
-        "lang.label":"🌐 Ngôn ngữ:"
-      },
-      ko:{
-        title:"YouDrama - 숏드라마",
-        "nav.features":"기능","nav.dramas":"드라마","nav.feedback":"리뷰","nav.download":"다운로드",
-        "hero.title":"언제 어디서나 숏드라마를 시청하세요.",
-        "hero.subtitle":"일상에 딱 맞는 중독성 강한 짧은 에피소드.",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"주요 기능",
-        "features.f1":"🎬 다양한 숏드라마 — 매일 업데이트.",
-        "features.f2":"⚡ 에피소드당 5분 이하.",
-        "features.f3":"❤️ 취향 기반 추천.",
-        "features.f4":"🌍 어떤 기기에서도 시청.",
-        "dramas.title":"인기 드라마",
-        "genres.free":"무료","genres.sweet":"달달 로맨스","genres.love":"사랑","genres.urban":"도시","genres.adventure":"모험",
-        "card.minutes":"에피소드 · 5분 이하",
-        "feedback.title":"이용자 리뷰","feedback.q1":"⭐⭐⭐⭐⭐ “정말 재밌어요!”","feedback.q2":"⭐⭐⭐⭐⭐ “출퇴근길에 딱입니다.”","feedback.q3":"⭐⭐⭐⭐⭐ “퀄리티 굿.”",
-        "download.title":"지금 바로 YouDrama 다운로드",
-        "footer.copyright":"© 2025 YouDrama. All rights reserved | 개인정보 | 이용약관",
-        "lang.label":"🌐 언어:"
-      },
-      ru:{
-        title:"YouDrama — короткие драмы",
-        "nav.features":"Функции","nav.dramas":"Драмы","nav.feedback":"Отзывы","nav.download":"Скачать",
-        "hero.title":"Смотрите короткие драмы где угодно и когда угодно.",
-        "hero.subtitle":"Короткие захватывающие серии на каждый день.",
-        "cta.play":"Google Play","cta.appstore":"App Store",
-        "features.title":"Возможности",
-        "features.f1":"🎬 Много коротких драм — ежедневные новинки.",
-        "features.f2":"⚡ Серии до 5 минут.",
-        "features.f3":"❤️ Персональные рекомендации.",
-        "features.f4":"🌍 Смотрите на любом устройстве.",
-        "dramas.title":"Популярные драмы",
-        "genres.free":"Бесплатно","genres.sweet":"Милый роман","genres.love":"Любовь","genres.urban":"Город","genres.adventure":"Приключения",
-        "card.minutes":"Эпизоды · до 5 минут",
-        "feedback.title":"Отзывы","feedback.q1":"⭐⭐⭐⭐⭐ “Лучшая апп!”","feedback.q2":"⭐⭐⭐⭐⭐ “Удобно в дороге.”","feedback.q3":"⭐⭐⭐⭐⭐ “Качество на уровне.”",
-        "download.title":"Скачать YouDrama",
-        "footer.copyright":"© 2025 YouDrama. Все права защищены | Конфиденциальность | Условия",
-        "lang.label":"🌐 Язык:"
-      },
-      ar:{
-        title:"يو دراما - دراما قصيرة",
-        "nav.features":"الميزات","nav.dramas":"الدراما","nav.feedback":"التقييمات","nav.download":"تنزيل",
-        "hero.title":"شاهد الدراما القصيرة في أي وقت وأي مكان.",
-        "hero.subtitle":"حلقات قصيرة وممتعة تناسب يومك.",
-        "cta.play":"Google Play","cta.appstore":"متجر التطبيقات ",
-        "features.title":"الميزات",
-        "features.f1":"🎬 مكتبة ضخمة — تحديثات يومية.",
-        "features.f2":"⚡ كل حلقة أقل من 5 دقائق.",
-        "features.f3":"❤️ توصيات مخصّصة حسب ذوقك.",
-        "features.f4":"🌍 شاهد على أي جهاز.",
-        "dramas.title":"أشهر الدراما",
-        "genres.free":"مجاني","genres.sweet":"رومانسية لطيفة","genres.love":"حب","genres.urban":"مدني","genres.adventure":"مغامرة",
-        "card.minutes":"حلقات · أقل من 5 دقائق",
-        "feedback.title":"آراء المستخدمين","feedback.q1":"⭐⭐⭐⭐⭐ “تطبيق رائع!”","feedback.q2":"⭐⭐⭐⭐⭐ “مناسب للتنقل.”","feedback.q3":"⭐⭐⭐⭐⭐ “جودة مذهلة.”",
-        "download.title":"حمّل YouDrama الآن",
-        "footer.copyright":"© 2025 YouDrama. جميع الحقوق محفوظة | الخصوصية | الشروط",
-        "lang.label":"🌐 اللغة:"
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouDrama - Short Drama App</title>
+    <style>
+      :root {
+        --brand: #ff6600;
+        --bg: #000;
+        --bg-2: #111;
+        --fg: #fff;
+        --muted: #bbb;
       }
-    };
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+      }
 
-    // Rotating badge strings per language
-    const badgeTexts = {
-      en:["Free Short Dramas","Tons of Curated Dramas","Sweet Romance","Love & Relationships","Urban Stories","Adventure Series","Super High Popularity"],
-      zh:["免费短剧","超多精选短剧","甜宠","爱情","都市","探险","热度超高"],
-      ja:["無料ショートドラマ","厳選タイトル多数","胸キュン","恋愛","都会もの","アドベンチャー","超高人気"],
-      es:["Dramas cortos gratis","Muchos títulos seleccionados","Romance dulce","Amor","Historias urbanas","Aventura","Súper populares"],
-      pt:["Minidramas grátis","Muitos selecionados","Romance fofo","Amor","Histórias urbanas","Aventura","Super populares"],
-      id:["Drama pendek gratis","Banyak pilihan kurasi","Romansa manis","Cinta","Urban","Petualangan","Sangat populer"],
-      hi:["फ्री शॉर्ट ड्रामा","ढेरों चुने हुए शो","स्वीट रोमांस","प्यार","अर्बन","एडवेंचर","बहुत लोकप्रिय"],
-      th:["ซีรีส์สั้นฟรี","คัดสรรมากมาย","โรแมนติกหวาน","ความรัก","เมือง","ผจญภัย","ฮิตสุดๆ"],
-      vi:["Phim ngắn miễn phí","Chọn lọc cực nhiều","Lãng mạn ngọt ngào","Tình yêu","Đô thị","Phiêu lưu","Siêu hot"],
-      ko:["무료 숏드라마","엄선한 작품 다수","달달 로맨스","사랑","도시","모험","초대박 인기"],
-      ru:["Бесплатные короткие драмы","Большой выбор","Милый роман","Любовь","Городские истории","Приключения","Суперпопулярно"],
-      ar:["دراما قصيرة مجانية","مختارات كثيرة","رومانسية لطيفة","حب","قصص مدنية","مغامرة","شعبية عالية"]
-    };
+      /* Header */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 28px;
+        background: rgba(17, 17, 17, 0.85);
+        backdrop-filter: saturate(180%) blur(8px);
+      }
+      .logo {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--brand);
+        letter-spacing: 0.3px;
+      }
+      nav a {
+        color: #fff;
+        text-decoration: none;
+        margin-left: 18px;
+        font-size: 15px;
+        opacity: 0.9;
+      }
+      nav a:hover {
+        opacity: 1;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        background: var(--brand);
+        color: #fff;
+        padding: 10px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: 0.25s transform, 0.25s opacity;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+        opacity: 0.95;
+      }
+      .btn.secondary {
+        background: #555;
+      }
 
-    // Helper translation function
-    function applyI18n(lang){
-      const dict = i18n[lang] || i18n.en;
-      document.documentElement.lang = lang;
-      document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
-      document.title = dict.title || i18n.en.title;
-      document.querySelectorAll('[data-i18n]').forEach(el=>{
-        const key = el.getAttribute('data-i18n');
-        if(dict[key]) el.innerText = dict[key];
+      /* HERO SLIDER (full-bleed) */
+      .hero {
+        position: relative;
+        min-height: 72vh;
+        max-height: 92vh;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .slides {
+        position: absolute;
+        inset: 0;
+      }
+      .slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.6s ease;
+      }
+      .slide.active {
+        opacity: 1;
+      }
+      .slide-media {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .slide::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.25) 0%,
+          rgba(0, 0, 0, 0.55) 55%,
+          rgba(0, 0, 0, 0.85) 100%
+        );
+      }
+      .hero-inner {
+        position: relative;
+        z-index: 2;
+        max-width: 960px;
+        text-align: center;
+        padding: 48px 20px 72px;
+      }
+      .hero h1 {
+        font-size: clamp(32px, 6vw, 60px);
+        line-height: 1.1;
+        margin: 0 0 14px;
+        font-weight: 900;
+      }
+      .hero p {
+        font-size: clamp(16px, 2.4vw, 20px);
+        color: #ddd;
+        margin: 0 0 14px;
+      }
+      .badge-rotator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 12px 0 22px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.35);
+        font-weight: 700;
+      }
+      .badge .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--brand);
+        display: inline-block;
+        margin-right: 8px;
+      }
+      .hero-ctas {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 6px;
+        flex-wrap: wrap;
+      }
+
+      /* Slider controls */
+      .ctrl {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 3;
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        user-select: none;
+      }
+      .ctrl:hover {
+        background: rgba(0, 0, 0, 0.6);
+      }
+      .ctrl.prev {
+        left: 14px;
+      }
+      .ctrl.next {
+        right: 14px;
+      }
+      .ctrl svg {
+        width: 22px;
+        height: 22px;
+        fill: #fff;
+      }
+      .dots {
+        position: absolute;
+        bottom: 18px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        z-index: 3;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.35);
+        cursor: pointer;
+      }
+      .dot.active {
+        background: #fff;
+      }
+
+      /* Sections */
+      section {
+        scroll-margin-top: 82px;
+      }
+      .features {
+        padding: 60px 20px;
+        background: var(--bg-2);
+        text-align: center;
+      }
+      .features h2 {
+        color: var(--brand);
+        margin: 0 0 32px;
+      }
+      .features-grid {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        gap: 20px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+      .feature {
+        background: #1c1c1c;
+        border: 1px solid #282828;
+        padding: 20px;
+        border-radius: 14px;
+        text-align: left;
+      }
+
+      /* DRAMA STRIP (large cards) */
+      .dramas {
+        padding: 60px 16px;
+        text-align: center;
+      }
+      .dramas h2 {
+        color: var(--brand);
+        margin: 0 0 18px;
+      }
+      .genres {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 18px;
+      }
+      .genres .chip {
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid #333;
+        background: #141414;
+        font-size: 14px;
+      }
+      .strip {
+        position: relative;
+        display: flex;
+        gap: 18px;
+        overflow-x: auto;
+        padding: 20px 6px 6px;
+        scroll-snap-type: x mandatory;
+      }
+      .strip::-webkit-scrollbar {
+        display: none;
+      }
+      .card {
+        flex: 0 0 320px;
+        scroll-snap-align: start;
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+        background: #111;
+        border: 1px solid #222;
+      }
+      .card img,
+      .card video {
+        width: 100%;
+        height: 360px;
+        object-fit: cover;
+        object-position: center center;
+        display: block;
+      }
+      .card .meta {
+        padding: 12px;
+        text-align: left;
+      }
+      .card .title {
+        font-weight: 800;
+        margin: 0 0 6px;
+      }
+      .card .sub {
+        color: #aaa;
+        font-size: 14px;
+        margin: 0;
+      }
+
+      /* Feedback & download */
+      .feedback {
+        padding: 60px 20px;
+        background: var(--bg-2);
+        text-align: center;
+      }
+      .feedback h2 {
+        color: var(--brand);
+      }
+      .feedback p {
+        font-style: italic;
+        max-width: 800px;
+        margin: 12px auto;
+        color: #ddd;
+      }
+      .download {
+        padding: 60px 20px;
+        text-align: center;
+      }
+      .download h2 {
+        color: var(--brand);
+      }
+
+      footer {
+        background: #000;
+        text-align: center;
+        padding: 20px;
+        color: #888;
+      }
+      .language-select {
+        margin-top: 10px;
+      }
+      .language-select select {
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: #111;
+        color: #fff;
+        border: 1px solid #444;
+      }
+
+      /* RTL support */
+      [dir="rtl"] .hero-ctas {
+        flex-direction: row-reverse;
+      }
+      [dir="rtl"] nav a {
+        margin-right: 18px;
+        margin-left: 0;
+      }
+
+      @media (max-width: 640px) {
+        .card {
+          flex-basis: 76vw;
+        }
+        .card img,
+        .card video {
+          height: 46vw;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">YouDrama</div>
+      <nav>
+        <a href="#features" data-i18n="nav.features">Features</a>
+        <a href="#dramas" data-i18n="nav.dramas">Dramas</a>
+        <a href="#feedback" data-i18n="nav.feedback">Feedback</a>
+        <a href="#download" data-i18n="nav.download">Download</a>
+      </nav>
+    </header>
+
+    <!-- HERO: full-bleed slider with video/image -->
+    <section class="hero" aria-label="Hero Slider">
+      <div class="slides" id="slides">
+        <!-- Slide 1: video (replace src with your trailer) -->
+        <div class="slide active" data-index="0">
+          <video
+            class="slide-media"
+            src="yourdrama.mp4"
+            muted
+            playsinline
+            autoplay
+            loop
+            preload="metadata"
+            onerror="this.style.display='none'"
+          ></video>
+          <img
+            class="slide-media"
+            src="https://dvfilepub.s3.amazonaws.com/youdrama/web/slide_2.png"
+          />
+        </div>
+        <!-- Slide 2: image -->
+        <div class="slide" data-index="1">
+          <img
+            class="slide-media"
+            src="https://dvfilepub.s3.amazonaws.com/youdrama/web/slide_1.png"
+          />
+        </div>
+        <!-- Slide 3: image -->
+        <div class="slide" data-index="2">
+          <img
+            class="slide-media"
+            src="https://dvfilepub.s3.amazonaws.com/youdrama/web/slide_3.png"
+          />
+        </div>
+      </div>
+
+      <button class="ctrl prev" aria-label="Previous" id="prev">
+        <svg viewBox="0 0 24 24">
+          <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+        </svg>
+      </button>
+      <button class="ctrl next" aria-label="Next" id="next">
+        <svg viewBox="0 0 24 24">
+          <path d="M8.59 16.59 10 18l6-6-6-6-1.41 1.41L12.17 12z" />
+        </svg>
+      </button>
+      <div
+        class="dots"
+        id="dots"
+        role="tablist"
+        aria-label="Slide indicators"
+      ></div>
+
+      <div class="hero-inner">
+        <h1 data-i18n="hero.title">Watch Short Dramas Anytime, Anywhere.</h1>
+        <p data-i18n="hero.subtitle">
+          Addictive bite-sized dramas tailored for your daily entertainment.
+        </p>
+        <div class="badge-rotator" aria-live="polite">
+          <span class="badge" id="rotating-badge"
+            ><span class="dot"></span
+            ><span id="badge-text">Free Short Dramas</span></span
+          >
+        </div>
+        <div class="hero-ctas">
+          <a
+            href="https://play.google.com/store/apps/details?id=you.drama.shorts"
+            class="btn"
+          >
+            <svg
+              style="height: 20px; margin-right: 8px; vertical-align: middle"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="rgba(255,255,255,1)"
+            >
+              <path
+                d="M3.60972 1.81396L13.793 12L3.61082 22.1864C3.41776 22.1048 3.24866 21.962 3.13555 21.7667C3.0474 21.6144 3.00098 21.4416 3.00098 21.2656V2.73453C3.00098 2.32109 3.25188 1.96625 3.60972 1.81396ZM14.5 12.707L16.802 15.009L5.86498 21.342L14.5 12.707ZM17.699 9.50896L20.5061 11.1347C20.9841 11.4114 21.1473 12.0232 20.8705 12.5011C20.783 12.6523 20.6574 12.778 20.5061 12.8655L17.698 14.491L15.207 12L17.699 9.50896ZM5.86498 2.65796L16.803 8.98996L14.5 11.293L5.86498 2.65796Z"
+              ></path>
+            </svg>
+            <span data-i18n="cta.play">Google Play</span>
+          </a>
+          <a
+            href="https://apps.apple.com/us/app/ora-drama-short-dramas-tv/id6744021081"
+            class="btn secondary"
+          >
+            <svg
+              style="height: 20px; margin-right: 8px; vertical-align: middle"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="rgba(255,255,255,1)"
+            >
+              <path
+                d="M11.6734 7.22198C10.7974 7.22198 9.44138 6.22598 8.01338 6.26198C6.12938 6.28598 4.40138 7.35397 3.42938 9.04597C1.47338 12.442 2.92538 17.458 4.83338 20.218C5.76938 21.562 6.87338 23.074 8.33738 23.026C9.74138 22.966 10.2694 22.114 11.9734 22.114C13.6654 22.114 14.1454 23.026 15.6334 22.99C17.1454 22.966 18.1054 21.622 19.0294 20.266C20.0974 18.706 20.5414 17.194 20.5654 17.11C20.5294 17.098 17.6254 15.982 17.5894 12.622C17.5654 9.81397 19.8814 8.46998 19.9894 8.40998C18.6694 6.47798 16.6414 6.26198 15.9334 6.21398C14.0854 6.06998 12.5374 7.22198 11.6734 7.22198ZM14.7934 4.38998C15.5734 3.45398 16.0894 2.14598 15.9454 0.849976C14.8294 0.897976 13.4854 1.59398 12.6814 2.52998C11.9614 3.35798 11.3374 4.68998 11.5054 5.96198C12.7414 6.05798 14.0134 5.32598 14.7934 4.38998Z"
+              ></path>
+            </svg>
+            <span data-i18n="cta.appstore">App Store</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <h2 data-i18n="features.title">Features</h2>
+      <div class="features-grid">
+        <div class="feature" data-i18n="features.f1">
+          🎬 Endless Short Dramas — Fresh stories updated daily.
+        </div>
+        <div class="feature" data-i18n="features.f2">
+          ⚡ Binge‑Worthy Episodes — Each episode under 5 minutes.
+        </div>
+        <div class="feature" data-i18n="features.f3">
+          ❤️ Personalized For You — Smart recommendations based on your taste.
+        </div>
+        <div class="feature" data-i18n="features.f4">
+          🌍 Watch Anywhere — Stream anytime, on any device.
+        </div>
+      </div>
+    </section>
+
+    <!-- LARGE CARDS STRIP -->
+    <section id="dramas" class="dramas">
+      <h2 data-i18n="dramas.title">Popular Dramas</h2>
+      <div class="genres" id="genreChips">
+        <span class="chip" data-i18n="genres.free">Free</span>
+        <span class="chip" data-i18n="genres.sweet">Sweet Romance</span>
+        <span class="chip" data-i18n="genres.love">Love</span>
+        <span class="chip" data-i18n="genres.urban">Urban</span>
+        <span class="chip" data-i18n="genres.adventure">Adventure</span>
+      </div>
+      <div class="strip">
+        <article class="card">
+          <video
+            src="your-teaser-1.mp4"
+            muted
+            playsinline
+            loop
+            preload="metadata"
+            poster="https://youdrama-vod.jowo.tv/1444527cvodsgp1500039468/444535515145403691905279868/cover.webp?t=68a83bed&us=cfb5bcbc8a9394c68ac886c16587d543&sign=9cad55f6f8b1283364289737e0702dea92dcd283"
+          ></video>
+        </article>
+        <article class="card">
+          <img
+            src="https://youdrama-vod.jowo.tv/1444527cvodsgp1500039468/9e367c8c3560136624810598569/wNmC3h.jpeg?t=68a83bed&us=03a631f5b07eebdabffb72acf7ed2406&sign=8d672a659e6eb9d26dbf4b2dda394325956fc2cb"
+            alt="Drama"
+          />
+        </article>
+        <article class="card">
+          <img
+            src="https://youdrama-vod.jowo.tv/1444527cvodsgp1500039468/8d724f295145403692662271687/cover.webp?t=68a83bed&us=5c59a1c85496eae8a8aabd6714d9c372&sign=eff9d21c290802ff6d602167b8f7986b696b4ce1"
+            alt="Drama"
+          />
+        </article>
+        <article class="card">
+          <img
+            src="https://youdrama-vod.jowo.tv/1444527cvodsgp1500039468/7cd8c24c5145403692658845660/cover.webp?t=68a83bed&us=88f33f67e331ba7c43eb5e748699d29f&sign=a50601cd6329f14983032aae53d4db74f8c87572"
+            alt="Drama"
+          />
+        </article>
+      </div>
+    </section>
+
+    <section id="feedback" class="feedback">
+      <h2 data-i18n="feedback.title">User Feedback</h2>
+      <p data-i18n="feedback.q1">
+        ⭐⭐⭐⭐⭐ “Best short drama app ever! Episodes are so addictive.”
+      </p>
+      <p data-i18n="feedback.q2">
+        ⭐⭐⭐⭐⭐ “Perfect for watching during my commute.”
+      </p>
+      <p data-i18n="feedback.q3">
+        ⭐⭐⭐⭐⭐ “High-quality dramas, way better than expected.”
+      </p>
+    </section>
+
+    <section id="download" class="download">
+      <h2 data-i18n="download.title">Download YouDrama Now</h2>
+      <a
+        href="https://play.google.com/store/apps/details?id=you.drama.shorts"
+        class="btn"
+        style="margin-right: 8px"
+      >
+        <svg
+          style="height: 20px; margin-right: 8px; vertical-align: middle"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="rgba(255,255,255,1)"
+        >
+          <path
+            d="M3.60972 1.81396L13.793 12L3.61082 22.1864C3.41776 22.1048 3.24866 21.962 3.13555 21.7667C3.0474 21.6144 3.00098 21.4416 3.00098 21.2656V2.73453C3.00098 2.32109 3.25188 1.96625 3.60972 1.81396ZM14.5 12.707L16.802 15.009L5.86498 21.342L14.5 12.707ZM17.699 9.50896L20.5061 11.1347C20.9841 11.4114 21.1473 12.0232 20.8705 12.5011C20.783 12.6523 20.6574 12.778 20.5061 12.8655L17.698 14.491L15.207 12L17.699 9.50896ZM5.86498 2.65796L16.803 8.98996L14.5 11.293L5.86498 2.65796Z"
+          ></path>
+        </svg>
+        <span data-i18n="cta.play">Google Play</span>
+      </a>
+      <a
+        href="https://apps.apple.com/us/app/ora-drama-short-dramas-tv/id6744021081"
+        class="btn secondary"
+      >
+        <svg
+          style="height: 20px; margin-right: 8px; vertical-align: middle"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="rgba(255,255,255,1)"
+        >
+          <path
+            d="M11.6734 7.22198C10.7974 7.22198 9.44138 6.22598 8.01338 6.26198C6.12938 6.28598 4.40138 7.35397 3.42938 9.04597C1.47338 12.442 2.92538 17.458 4.83338 20.218C5.76938 21.562 6.87338 23.074 8.33738 23.026C9.74138 22.966 10.2694 22.114 11.9734 22.114C13.6654 22.114 14.1454 23.026 15.6334 22.99C17.1454 22.966 18.1054 21.622 19.0294 20.266C20.0974 18.706 20.5414 17.194 20.5654 17.11C20.5294 17.098 17.6254 15.982 17.5894 12.622C17.5654 9.81397 19.8814 8.46998 19.9894 8.40998C18.6694 6.47798 16.6414 6.26198 15.9334 6.21398C14.0854 6.06998 12.5374 7.22198 11.6734 7.22198ZM14.7934 4.38998C15.5734 3.45398 16.0894 2.14598 15.9454 0.849976C14.8294 0.897976 13.4854 1.59398 12.6814 2.52998C11.9614 3.35798 11.3374 4.68998 11.5054 5.96198C12.7414 6.05798 14.0134 5.32598 14.7934 4.38998Z"
+          ></path>
+        </svg>
+        <span data-i18n="cta.appstore">App Store</span>
+      </a>
+    </section>
+
+    <footer>
+      <p data-i18n="footer.copyright">
+        © 2025 YouDrama. All rights reserved. | Privacy Policy | Terms of
+        Service
+      </p>
+      <div class="language-select">
+        <label for="language" data-i18n="lang.label">🌐 Language:</label>
+        <select id="language">
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+          <option value="ja">日本語</option>
+          <option value="es">Español</option>
+          <option value="pt">Português</option>
+          <option value="id">Bahasa Indonesia</option>
+          <option value="hi">हिन्दी</option>
+          <option value="th">ไทย</option>
+          <option value="vi">Tiếng Việt</option>
+          <option value="ko">한국어</option>
+          <option value="ru">Русский</option>
+          <option value="ar">العربية</option>
+        </select>
+      </div>
+    </footer>
+
+    <script>
+      // --- i18n dictionary ---
+      const i18n = {
+        en: {
+          title: "YouDrama - Short Drama App",
+          "nav.features": "Features",
+          "nav.dramas": "Dramas",
+          "nav.feedback": "Feedback",
+          "nav.download": "Download",
+          "hero.title": "Watch Short Dramas Anytime, Anywhere.",
+          "hero.subtitle":
+            "Addictive bite-sized dramas tailored for your daily entertainment.",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "Features",
+          "features.f1":
+            "🎬 Endless Short Dramas — Fresh stories updated daily.",
+          "features.f2":
+            "⚡ Binge‑Worthy Episodes — Each episode under 5 minutes.",
+          "features.f3":
+            "❤️ Personalized For You — Smart recommendations based on your taste.",
+          "features.f4": "🌍 Watch Anywhere — Stream anytime, on any device.",
+          "dramas.title": "Popular Dramas",
+          "genres.free": "Free",
+          "genres.sweet": "Sweet Romance",
+          "genres.love": "Love",
+          "genres.urban": "Urban",
+          "genres.adventure": "Adventure",
+          "card.minutes": "Episodes · under 5 minutes",
+          "feedback.title": "User Feedback",
+          "feedback.q1":
+            "⭐⭐⭐⭐⭐ “Best short drama app ever! Episodes are so addictive.”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “Perfect for watching during my commute.”",
+          "feedback.q3":
+            "⭐⭐⭐⭐⭐ “High-quality dramas, way better than expected.”",
+          "download.title": "Download YouDrama Now",
+          "footer.copyright":
+            "© 2025 YouDrama. All rights reserved. | Privacy Policy | Terms of Service",
+          "lang.label": "🌐 Language:",
+        },
+        zh: {
+          title: "YouDrama - 短剧应用",
+          "nav.features": "功能",
+          "nav.dramas": "短剧",
+          "nav.feedback": "评价",
+          "nav.download": "下载",
+          "hero.title": "随时随地看短剧。",
+          "hero.subtitle": "上头又过瘾的碎片化短剧，量身定制你的每日娱乐。",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "功能亮点",
+          "features.f1": "🎬 海量短剧——每日更新新故事。",
+          "features.f2": "⚡ 刷到停不下——每集小于 5 分钟。",
+          "features.f3": "❤️ 个性化推荐——更懂你的口味。",
+          "features.f4": "🌍 随处可看——多设备流畅观看。",
+          "dramas.title": "热门短剧",
+          "genres.free": "免费",
+          "genres.sweet": "甜宠",
+          "genres.love": "爱情",
+          "genres.urban": "都市",
+          "genres.adventure": "探险",
+          "card.minutes": "单集 · 不超过 5 分钟",
+          "feedback.title": "用户口碑",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “最好用的短剧 App！一集接一集停不下来。”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “通勤刚刚好，碎片时间也能追。”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “质量超出预期，故事很上头。”",
+          "download.title": "立即下载 YouDrama",
+          "footer.copyright":
+            "© 2025 YouDrama. 保留所有权利 | 隐私政策 | 服务条款",
+          "lang.label": "🌐 语言：",
+        },
+        ja: {
+          title: "YouDrama - ショートドラマ",
+          "nav.features": "特徴",
+          "nav.dramas": "ドラマ",
+          "nav.feedback": "レビュー",
+          "nav.download": "ダウンロード",
+          "hero.title": "いつでもどこでもショートドラマ。",
+          "hero.subtitle": "毎日のエンタメに最適、サクッと見られるドラマ。",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "主な機能",
+          "features.f1": "🎬 無料のショートドラマが毎日更新。",
+          "features.f2": "⚡ 1話5分以内で一気見。",
+          "features.f3": "❤️ 好みに合わせたレコメンド。",
+          "features.f4": "🌍 どのデバイスでも視聴可能。",
+          "dramas.title": "人気ドラマ",
+          "genres.free": "無料",
+          "genres.sweet": "胸キュン",
+          "genres.love": "恋愛",
+          "genres.urban": "都会",
+          "genres.adventure": "アドベンチャー",
+          "card.minutes": "各話・5分以内",
+          "feedback.title": "ユーザーレビュー",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “中毒性がある！通勤にも最適。”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “スキマ時間にちょうどいい。”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “想像以上のクオリティ。”",
+          "download.title": "今すぐ YouDrama を入手",
+          "footer.copyright":
+            "© 2025 YouDrama. 無断転載禁止 | プライバシー | 利用規約",
+          "lang.label": "🌐 言語:",
+        },
+        es: {
+          title: "YouDrama - Mini dramas",
+          "nav.features": "Funciones",
+          "nav.dramas": "Dramas",
+          "nav.feedback": "Opiniones",
+          "nav.download": "Descargar",
+          "hero.title": "Mira mini‑dramas cuando y donde quieras.",
+          "hero.subtitle": "Historias cortas y adictivas para tu día a día.",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "Funciones",
+          "features.f1":
+            "🎬 Muchísimos mini‑dramas — Nuevas historias cada día.",
+          "features.f2": "⚡ Episodios para maratonear — Menos de 5 minutos.",
+          "features.f3": "❤️ Recomendaciones según tus gustos.",
+          "features.f4": "🌍 Disfruta en cualquier dispositivo.",
+          "dramas.title": "Dramas populares",
+          "genres.free": "Gratis",
+          "genres.sweet": "Dulce romance",
+          "genres.love": "Amor",
+          "genres.urban": "Urbano",
+          "genres.adventure": "Aventura",
+          "card.minutes": "Episodios · menos de 5 minutos",
+          "feedback.title": "Opiniones",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “La mejor app de mini‑dramas. ¡Engancha!”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “Perfecta para el transporte.”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “Calidad sorprendente.”",
+          "download.title": "Descarga YouDrama ahora",
+          "footer.copyright":
+            "© 2025 YouDrama. Todos los derechos reservados | Privacidad | Términos",
+          "lang.label": "🌐 Idioma:",
+        },
+        pt: {
+          title: "YouDrama - Minisséries",
+          "nav.features": "Recursos",
+          "nav.dramas": "Dramas",
+          "nav.feedback": "Avaliações",
+          "nav.download": "Baixar",
+          "hero.title": "Assista minidramas em qualquer hora e lugar.",
+          "hero.subtitle": "Histórias curtas e viciantes para o seu dia a dia.",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "Recursos",
+          "features.f1": "🎬 Muitas minisséries — Novas histórias diariamente.",
+          "features.f2": "⚡ Episódios para maratonar — Menos de 5 minutos.",
+          "features.f3": "❤️ Recomendações personalizadas.",
+          "features.f4": "🌍 Assista em qualquer dispositivo.",
+          "dramas.title": "Dramas populares",
+          "genres.free": "Grátis",
+          "genres.sweet": "Romance fofo",
+          "genres.love": "Amor",
+          "genres.urban": "Urbano",
+          "genres.adventure": "Aventura",
+          "card.minutes": "Episódios · menos de 5 minutos",
+          "feedback.title": "Depoimentos",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “O melhor app de minidramas!”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “Perfeito para o trajeto.”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “Qualidade surpreendente.”",
+          "download.title": "Baixe o YouDrama agora",
+          "footer.copyright":
+            "© 2025 YouDrama. Todos os direitos reservados | Privacidade | Termos",
+          "lang.label": "🌐 Idioma:",
+        },
+        id: {
+          title: "YouDrama - Drama Pendek",
+          "nav.features": "Fitur",
+          "nav.dramas": "Drama",
+          "nav.feedback": "Ulasan",
+          "nav.download": "Unduh",
+          "hero.title": "Tonton drama pendek kapan saja, di mana saja.",
+          "hero.subtitle": "Drama singkat yang bikin ketagihan untuk harianmu.",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "Fitur",
+          "features.f1": "🎬 Banyak drama pendek — Update setiap hari.",
+          "features.f2": "⚡ Tiap episode < 5 menit.",
+          "features.f3": "❤️ Rekomendasi sesuai selera.",
+          "features.f4": "🌍 Tonton di perangkat apa pun.",
+          "dramas.title": "Drama Populer",
+          "genres.free": "Gratis",
+          "genres.sweet": "Romantis manis",
+          "genres.love": "Cinta",
+          "genres.urban": "Perkotaan",
+          "genres.adventure": "Petualangan",
+          "card.minutes": "Episode · kurang dari 5 menit",
+          "feedback.title": "Ulasan",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “Aplikasinya bikin nagih!”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “Pas untuk waktu senggang.”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “Kualitasnya mantap.”",
+          "download.title": "Unduh YouDrama sekarang",
+          "footer.copyright":
+            "© 2025 YouDrama. Semua hak dilindungi | Privasi | Ketentuan",
+          "lang.label": "🌐 Bahasa:",
+        },
+        hi: {
+          title: "YouDrama - शॉर्ट ड्रामा ऐप",
+          "nav.features": "फ़ीचर्स",
+          "nav.dramas": "ड्रामा",
+          "nav.feedback": "समीक्षाएँ",
+          "nav.download": "डाउनलोड",
+          "hero.title": "कभी भी, कहीं भी शॉर्ट ड्रामा देखें।",
+          "hero.subtitle":
+            "आपके रोज़मर्रा के मनोरंजन के लिए छोटे और रोमांचक एपिसोड।",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "मुख्य फ़ीचर्स",
+          "features.f1": "🎬 ढेरों शॉर्ट ड्रामा — रोज़ नए एपिसोड।",
+          "features.f2": "⚡ हर एपिसोड 5 मिनट से कम।",
+          "features.f3": "❤️ आपकी पसंद पर आधारित सुझाव।",
+          "features.f4": "🌍 किसी भी डिवाइस पर देखें।",
+          "dramas.title": "लोकप्रिय ड्रामा",
+          "genres.free": "फ्री",
+          "genres.sweet": "स्वीट रोमांस",
+          "genres.love": "प्यार",
+          "genres.urban": "अर्बन",
+          "genres.adventure": "एडवेंचर",
+          "card.minutes": "एपिसोड · 5 मिनट से कम",
+          "feedback.title": "उपयोगकर्ता समीक्षाएँ",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “बेहतरीन ऐप!”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “कम्यूट के लिए परफेक्ट।”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “क्वालिटी शानदार।”",
+          "download.title": "अभी डाउनलोड करें YouDrama",
+          "footer.copyright":
+            "© 2025 YouDrama. सर्वाधिकार सुरक्षित | गोपनीयता | शर्तें",
+          "lang.label": "🌐 भाषा:",
+        },
+        th: {
+          title: "YouDrama - ซีรีส์สั้น",
+          "nav.features": "ฟีเจอร์",
+          "nav.dramas": "ซีรีส์",
+          "nav.feedback": "รีวิว",
+          "nav.download": "ดาวน์โหลด",
+          "hero.title": "รับชมซีรีส์สั้นได้ทุกที่ ทุกเวลา",
+          "hero.subtitle": "ตอนสั้นๆ ดูเพลิน เหมาะกับทุกวันของคุณ",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "ฟีเจอร์",
+          "features.f1": "🎬 ซีรีส์สั้นจำนวนมาก อัปเดตทุกวัน",
+          "features.f2": "⚡ ตอนละไม่ถึง 5 นาที",
+          "features.f3": "❤️ แนะนำตามรสนิยมของคุณ",
+          "features.f4": "🌍 ดูได้ทุกอุปกรณ์",
+          "dramas.title": "ซีรีส์ยอดนิยม",
+          "genres.free": "ฟรี",
+          "genres.sweet": "หวานละมุน",
+          "genres.love": "ความรัก",
+          "genres.urban": "เมือง",
+          "genres.adventure": "ผจญภัย",
+          "card.minutes": "ตอน · ไม่เกิน 5 นาที",
+          "feedback.title": "รีวิวผู้ใช้",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “ติดมาก!”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “ดูระหว่างเดินทางกำลังดี”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “คุณภาพดีเกินคาด”",
+          "download.title": "ดาวน์โหลด YouDrama เลย",
+          "footer.copyright":
+            "© 2025 YouDrama. สงวนลิขสิทธิ์ | ความเป็นส่วนตัว | ข้อกำหนด",
+          "lang.label": "🌐 ภาษา:",
+        },
+        vi: {
+          title: "YouDrama - Phim ngắn",
+          "nav.features": "Tính năng",
+          "nav.dramas": "Phim",
+          "nav.feedback": "Đánh giá",
+          "nav.download": "Tải xuống",
+          "hero.title": "Xem phim ngắn mọi lúc, mọi nơi.",
+          "hero.subtitle": "Những tập phim ngắn gây nghiện cho ngày của bạn.",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "Tính năng",
+          "features.f1": "🎬 Nhiều phim ngắn — Cập nhật hằng ngày.",
+          "features.f2": "⚡ Mỗi tập dưới 5 phút.",
+          "features.f3": "❤️ Gợi ý theo sở thích.",
+          "features.f4": "🌍 Xem trên mọi thiết bị.",
+          "dramas.title": "Phim phổ biến",
+          "genres.free": "Miễn phí",
+          "genres.sweet": "Ngọt ngào",
+          "genres.love": "Tình yêu",
+          "genres.urban": "Đô thị",
+          "genres.adventure": "Phiêu lưu",
+          "card.minutes": "Tập · dưới 5 phút",
+          "feedback.title": "Phản hồi",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “Ứng dụng tuyệt vời!”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “Rất hợp khi di chuyển.”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “Chất lượng vượt mong đợi.”",
+          "download.title": "Tải YouDrama ngay",
+          "footer.copyright":
+            "© 2025 YouDrama. Bảo lưu mọi quyền | Quyền riêng tư | Điều khoản",
+          "lang.label": "🌐 Ngôn ngữ:",
+        },
+        ko: {
+          title: "YouDrama - 숏드라마",
+          "nav.features": "기능",
+          "nav.dramas": "드라마",
+          "nav.feedback": "리뷰",
+          "nav.download": "다운로드",
+          "hero.title": "언제 어디서나 숏드라마를 시청하세요.",
+          "hero.subtitle": "일상에 딱 맞는 중독성 강한 짧은 에피소드.",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "주요 기능",
+          "features.f1": "🎬 다양한 숏드라마 — 매일 업데이트.",
+          "features.f2": "⚡ 에피소드당 5분 이하.",
+          "features.f3": "❤️ 취향 기반 추천.",
+          "features.f4": "🌍 어떤 기기에서도 시청.",
+          "dramas.title": "인기 드라마",
+          "genres.free": "무료",
+          "genres.sweet": "달달 로맨스",
+          "genres.love": "사랑",
+          "genres.urban": "도시",
+          "genres.adventure": "모험",
+          "card.minutes": "에피소드 · 5분 이하",
+          "feedback.title": "이용자 리뷰",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “정말 재밌어요!”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “출퇴근길에 딱입니다.”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “퀄리티 굿.”",
+          "download.title": "지금 바로 YouDrama 다운로드",
+          "footer.copyright":
+            "© 2025 YouDrama. All rights reserved | 개인정보 | 이용약관",
+          "lang.label": "🌐 언어:",
+        },
+        ru: {
+          title: "YouDrama — короткие драмы",
+          "nav.features": "Функции",
+          "nav.dramas": "Драмы",
+          "nav.feedback": "Отзывы",
+          "nav.download": "Скачать",
+          "hero.title": "Смотрите короткие драмы где угодно и когда угодно.",
+          "hero.subtitle": "Короткие захватывающие серии на каждый день.",
+          "cta.play": "Google Play",
+          "cta.appstore": "App Store",
+          "features.title": "Возможности",
+          "features.f1": "🎬 Много коротких драм — ежедневные новинки.",
+          "features.f2": "⚡ Серии до 5 минут.",
+          "features.f3": "❤️ Персональные рекомендации.",
+          "features.f4": "🌍 Смотрите на любом устройстве.",
+          "dramas.title": "Популярные драмы",
+          "genres.free": "Бесплатно",
+          "genres.sweet": "Милый роман",
+          "genres.love": "Любовь",
+          "genres.urban": "Город",
+          "genres.adventure": "Приключения",
+          "card.minutes": "Эпизоды · до 5 минут",
+          "feedback.title": "Отзывы",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “Лучшая апп!”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “Удобно в дороге.”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “Качество на уровне.”",
+          "download.title": "Скачать YouDrama",
+          "footer.copyright":
+            "© 2025 YouDrama. Все права защищены | Конфиденциальность | Условия",
+          "lang.label": "🌐 Язык:",
+        },
+        ar: {
+          title: "يو دراما - دراما قصيرة",
+          "nav.features": "الميزات",
+          "nav.dramas": "الدراما",
+          "nav.feedback": "التقييمات",
+          "nav.download": "تنزيل",
+          "hero.title": "شاهد الدراما القصيرة في أي وقت وأي مكان.",
+          "hero.subtitle": "حلقات قصيرة وممتعة تناسب يومك.",
+          "cta.play": "Google Play",
+          "cta.appstore": "متجر التطبيقات ",
+          "features.title": "الميزات",
+          "features.f1": "🎬 مكتبة ضخمة — تحديثات يومية.",
+          "features.f2": "⚡ كل حلقة أقل من 5 دقائق.",
+          "features.f3": "❤️ توصيات مخصّصة حسب ذوقك.",
+          "features.f4": "🌍 شاهد على أي جهاز.",
+          "dramas.title": "أشهر الدراما",
+          "genres.free": "مجاني",
+          "genres.sweet": "رومانسية لطيفة",
+          "genres.love": "حب",
+          "genres.urban": "مدني",
+          "genres.adventure": "مغامرة",
+          "card.minutes": "حلقات · أقل من 5 دقائق",
+          "feedback.title": "آراء المستخدمين",
+          "feedback.q1": "⭐⭐⭐⭐⭐ “تطبيق رائع!”",
+          "feedback.q2": "⭐⭐⭐⭐⭐ “مناسب للتنقل.”",
+          "feedback.q3": "⭐⭐⭐⭐⭐ “جودة مذهلة.”",
+          "download.title": "حمّل YouDrama الآن",
+          "footer.copyright":
+            "© 2025 YouDrama. جميع الحقوق محفوظة | الخصوصية | الشروط",
+          "lang.label": "🌐 اللغة:",
+        },
+      };
+
+      // Rotating badge strings per language
+      const badgeTexts = {
+        en: [
+          "Free Short Dramas",
+          "Tons of Curated Dramas",
+          "Sweet Romance",
+          "Love & Relationships",
+          "Urban Stories",
+          "Adventure Series",
+          "Super High Popularity",
+        ],
+        zh: [
+          "免费短剧",
+          "超多精选短剧",
+          "甜宠",
+          "爱情",
+          "都市",
+          "探险",
+          "热度超高",
+        ],
+        ja: [
+          "無料ショートドラマ",
+          "厳選タイトル多数",
+          "胸キュン",
+          "恋愛",
+          "都会もの",
+          "アドベンチャー",
+          "超高人気",
+        ],
+        es: [
+          "Dramas cortos gratis",
+          "Muchos títulos seleccionados",
+          "Romance dulce",
+          "Amor",
+          "Historias urbanas",
+          "Aventura",
+          "Súper populares",
+        ],
+        pt: [
+          "Minidramas grátis",
+          "Muitos selecionados",
+          "Romance fofo",
+          "Amor",
+          "Histórias urbanas",
+          "Aventura",
+          "Super populares",
+        ],
+        id: [
+          "Drama pendek gratis",
+          "Banyak pilihan kurasi",
+          "Romansa manis",
+          "Cinta",
+          "Urban",
+          "Petualangan",
+          "Sangat populer",
+        ],
+        hi: [
+          "फ्री शॉर्ट ड्रामा",
+          "ढेरों चुने हुए शो",
+          "स्वीट रोमांस",
+          "प्यार",
+          "अर्बन",
+          "एडवेंचर",
+          "बहुत लोकप्रिय",
+        ],
+        th: [
+          "ซีรีส์สั้นฟรี",
+          "คัดสรรมากมาย",
+          "โรแมนติกหวาน",
+          "ความรัก",
+          "เมือง",
+          "ผจญภัย",
+          "ฮิตสุดๆ",
+        ],
+        vi: [
+          "Phim ngắn miễn phí",
+          "Chọn lọc cực nhiều",
+          "Lãng mạn ngọt ngào",
+          "Tình yêu",
+          "Đô thị",
+          "Phiêu lưu",
+          "Siêu hot",
+        ],
+        ko: [
+          "무료 숏드라마",
+          "엄선한 작품 다수",
+          "달달 로맨스",
+          "사랑",
+          "도시",
+          "모험",
+          "초대박 인기",
+        ],
+        ru: [
+          "Бесплатные короткие драмы",
+          "Большой выбор",
+          "Милый роман",
+          "Любовь",
+          "Городские истории",
+          "Приключения",
+          "Суперпопулярно",
+        ],
+        ar: [
+          "دراما قصيرة مجانية",
+          "مختارات كثيرة",
+          "رومانسية لطيفة",
+          "حب",
+          "قصص مدنية",
+          "مغامرة",
+          "شعبية عالية",
+        ],
+      };
+
+      // Helper translation function
+      function applyI18n(lang) {
+        const dict = i18n[lang] || i18n.en;
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+        document.title = dict.title || i18n.en.title;
+        document.querySelectorAll("[data-i18n]").forEach((el) => {
+          const key = el.getAttribute("data-i18n");
+          if (dict[key]) el.innerText = dict[key];
+        });
+        // Update rotating badge list
+        rotatingList = badgeTexts[lang] || badgeTexts.en;
+        badgeIndex = 0; // reset
+        document.getElementById("badge-text").innerText = rotatingList[0];
+        // Persist selection
+        localStorage.setItem("yd_lang", lang);
+        // Sync <select>
+        const select = document.getElementById("language");
+        if (select && select.value !== lang) {
+          select.value = lang;
+        }
+      }
+
+      // Language boot: saved -> browser -> en
+      const saved = localStorage.getItem("yd_lang");
+      const browserLang = (navigator.language || "en").slice(0, 2);
+      const initialLang = saved || (i18n[browserLang] ? browserLang : "en");
+
+      // Rotating badge
+      let rotatingList = badgeTexts[initialLang] || badgeTexts.en;
+      let badgeIndex = 0;
+      const badgeEl = document.getElementById("badge-text");
+      const prefersNoMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      if (!prefersNoMotion) {
+        setInterval(() => {
+          badgeIndex = (badgeIndex + 1) % rotatingList.length;
+          badgeEl.textContent = rotatingList[badgeIndex];
+        }, 2400);
+      }
+
+      // Slider logic
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      const dotsWrap = document.getElementById("dots");
+      let current = 0;
+      slides.forEach((_, i) => {
+        const d = document.createElement("div");
+        d.className = "dot" + (i === 0 ? " active" : "");
+        d.role = "tab";
+        d.ariaLabel = `Go to slide ${i + 1}`;
+        d.tabIndex = 0;
+        d.addEventListener("click", () => go(i));
+        dotsWrap.appendChild(d);
       });
-      // Update rotating badge list
-      rotatingList = badgeTexts[lang] || badgeTexts.en;
-      badgeIndex = 0; // reset
-      document.getElementById('badge-text').innerText = rotatingList[0];
-      // Persist selection
-      localStorage.setItem('yd_lang', lang);
-      // Sync <select>
-      const select = document.getElementById('language');
-      if(select && select.value !== lang){ select.value = lang; }
-    }
+      const dots = Array.from(dotsWrap.children);
 
-    // Language boot: saved -> browser -> en
-    const saved = localStorage.getItem('yd_lang');
-    const browserLang = (navigator.language||'en').slice(0,2);
-    const initialLang = saved || (i18n[browserLang] ? browserLang : 'en');
+      function go(i) {
+        slides[current].classList.remove("active");
+        dots[current].classList.remove("active");
+        current = (i + slides.length) % slides.length;
+        slides[current].classList.add("active");
+        dots[current].classList.add("active");
+      }
 
-    // Rotating badge
-    let rotatingList = badgeTexts[initialLang] || badgeTexts.en;
-    let badgeIndex = 0;
-    const badgeEl = document.getElementById('badge-text');
-    const prefersNoMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(!prefersNoMotion){
-      setInterval(()=>{
-        badgeIndex = (badgeIndex + 1) % rotatingList.length;
-        badgeEl.textContent = rotatingList[badgeIndex];
-      }, 2400);
-    }
+      document
+        .getElementById("prev")
+        .addEventListener("click", () => go(current - 1));
+      document
+        .getElementById("next")
+        .addEventListener("click", () => go(current + 1));
 
-    // Slider logic
-    const slides = Array.from(document.querySelectorAll('.slide'));
-    const dotsWrap = document.getElementById('dots');
-    let current = 0;
-    slides.forEach((_,i)=>{
-      const d = document.createElement('div');
-      d.className='dot'+(i===0?' active':'');
-      d.role='tab'; d.ariaLabel = Go to slide ${i+1}; d.tabIndex=0;
-      d.addEventListener('click',()=>go(i));
-      dotsWrap.appendChild(d);
-    });
-    const dots = Array.from(dotsWrap.children);
+      // Auto advance
+      let timer = null;
+      function start() {
+        if (prefersNoMotion) return;
+        timer = setInterval(() => go(current + 1), 5000);
+      }
+      function stop() {
+        if (timer) clearInterval(timer);
+      }
+      start();
+      document.querySelector(".hero").addEventListener("mouseenter", stop);
+      document.querySelector(".hero").addEventListener("mouseleave", start);
 
-    function go(i){
-      slides[current].classList.remove('active');
-      dots[current].classList.remove('active');
-      current = (i+slides.length)%slides.length;
-      slides[current].classList.add('active');
-      dots[current].classList.add('active');
-    }
+      // Touch swipe for slider
+      let startX = null;
+      document.querySelector(".hero").addEventListener(
+        "touchstart",
+        (e) => {
+          startX = e.touches[0].clientX;
+        },
+        { passive: true }
+      );
+      document.querySelector(".hero").addEventListener("touchend", (e) => {
+        if (startX === null) return;
+        const dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 40) {
+          go(current + (dx < 0 ? 1 : -1));
+        }
+        startX = null;
+      });
 
-    document.getElementById('prev').addEventListener('click',()=>go(current-1));
-    document.getElementById('next').addEventListener('click',()=>go(current+1));
+      // Language <select>
+      document
+        .getElementById("language")
+        .addEventListener("change", (e) => applyI18n(e.target.value));
 
-    // Auto advance
-    let timer=null;
-    function start(){ if(prefersNoMotion) return; timer=setInterval(()=>go(current+1), 5000); }
-    function stop(){ if(timer) clearInterval(timer); }
-    start();
-    document.querySelector('.hero').addEventListener('mouseenter',stop);
-    document.querySelector('.hero').addEventListener('mouseleave',start);
-
-    // Touch swipe for slider
-    let startX=null;
-    document.querySelector('.hero').addEventListener('touchstart',e=>{startX=e.touches[0].clientX;}, {passive:true});
-    document.querySelector('.hero').addEventListener('touchend',e=>{
-      if(startX===null) return; const dx=e.changedTouches[0].clientX-startX; if(Math.abs(dx)>40){ go(current+(dx<0?1:-1)); } startX=null;
-    });
-
-    // Language <select>
-    document.getElementById('language').addEventListener('change',e=>applyI18n(e.target.value));
-
-    // First render
-    applyI18n(initialLang);
-  </script>
-</body>
+      // First render
+      applyI18n(initialLang);
+    </script>
+  </body>
 </html>
