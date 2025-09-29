@@ -5,14 +5,14 @@
              "appIDs": [ "7FTDGAGQH5.you.drama.short"],
              "components": [
                {
-                  "/": "/youdrama/foryou",
+                  "/": "/youdrama/foryou/*",
                },
                {
-                  "/": "/youdrama/drama",
+                  "/": "/youdrama/drama/*",
                   "?": { "id": "????" },
                },
                {
-                  "/": "/youdrama/home",
+                  "/": "/youdrama/home/*",
                }
              ]
            }
